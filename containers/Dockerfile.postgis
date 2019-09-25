@@ -1,0 +1,30 @@
+FROM docker.io/library/postgres:11
+LABEL maintainer="M. Edward (Ed) Borasky <ed.borasky@hackoregon.org>"
+
+# Install apt packages
+COPY backports.list cran.list /etc/apt/sources.list.d/
+RUN apt-key adv --keyserver keys.gnupg.net --recv-key 'E19F5F87128899B192B1A2C2AD5F960A256A04AF'
+RUN apt-get update \
+  && apt-get install -qqy --no-install-recommends \
+    gdal-bin \
+    inetutils-ping \
+    libgdal-dev \
+    libpq-dev \
+    libssl-dev \
+    libudunits2-dev \
+    postgresql-11-cstore-fdw \
+    postgresql-11-ogr-fdw \
+    postgresql-11-pgrouting \
+    postgresql-11-pgrouting-doc \
+    postgresql-11-pgrouting-scripts \
+    postgresql-11-postgis-2.5 \
+    postgresql-11-postgis-2.5-scripts \
+    postgresql-client-11 \
+    r-base-dev \
+  && apt-get clean
+
+RUN R -e 'update.packages(ask=FALSE)'
+RUN R -e 'install.packages(c("acs", "censusapi", "data.table", "RPostgres", "sf", "sp", "tidycensus"))'
+
+# change port to 5439
+COPY postgis-scripts/change-port.sql /docker-entrypoint-initdb.d/
