@@ -23,7 +23,7 @@
 Log in with the email address and password you set for `pgadmin4` in `.env`. Then, click on the `Servers` tab in the tree on the left panel. It will ask you for the `postgres` password you set in `.env`. Then it will connect to the `postgis` container.
 
 ## Using the `postgis` command line
-To run PostgreSQL command-line utilities like `psql`, `pg_dump`, `createuser`, etc,, log in as `postgres`:
+To run PostgreSQL command-line utilities like `psql`, `pg_dump`, `createuser`, etc., log in as `postgres`:
 
 ```
 docker exec -it -u postgres containers_postgis_1 /bin/bash
