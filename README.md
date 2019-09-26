@@ -1,2 +1,4 @@
 # opportunity-project-data-wrangling
-A place to captire / explore various datasets for the opportunity project
+A place to capture / explore various datasets for the opportunity project
+
+## [Containers](containers/README.md)
