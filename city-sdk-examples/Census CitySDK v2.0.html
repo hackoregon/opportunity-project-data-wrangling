@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>Census CitySDK v2.0</title>
+  <meta charset="UTF-8">
+  <link href="Census%20CitySDK%20v2.0_files/mapbox-gl.css" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+    .map-overlay {
+      position: absolute;
+      right: 0;
+      height: 100%;
+      margin-bottom: 30px;
+      padding: 10px;
+      z-index: 1;
+      background-color: rgba(255, 255, 255, 0.5);
+      overflow-y: scroll;
+      color: black;
+    }
+  </style>
+</head>
+
+<body>
+<div id="app"></div>
+<div id="map" class="mapboxgl-map"><div class="mapboxgl-canary" style="visibility: hidden;"></div><div class="mapboxgl-canvas-container mapboxgl-interactive mapboxgl-touch-drag-pan mapboxgl-touch-zoom-rotate"><canvas class="mapboxgl-canvas" style="position: absolute; width: 1354px; height: 590px;" tabindex="0" aria-label="Map" width="1354" height="590"></canvas></div><div class="mapboxgl-control-container"><div class="mapboxgl-ctrl-top-left"></div><div class="mapboxgl-ctrl-top-right"></div><div class="mapboxgl-ctrl-bottom-left"><div class="mapboxgl-ctrl" style="display: block;"><a class="mapboxgl-ctrl-logo" target="_blank" href="https://www.mapbox.com/" aria-label="Mapbox logo" rel="noopener"></a></div></div><div class="mapboxgl-ctrl-bottom-right"><div class="mapboxgl-ctrl mapboxgl-ctrl-attrib"><div class="mapboxgl-ctrl-attrib-inner"><a href="https://www.mapbox.com/about/maps/" target="_blank">© Mapbox</a> <a href="http://www.openstreetmap.org/about/" target="_blank">© OpenStreetMap</a> <a class="mapbox-improve-map" href="https://www.mapbox.com/feedback/?owner=openideo&amp;id=cj48m1z521vzo2rqws9kwesra&amp;access_token=pk.eyJ1Ijoib3BlbmlkZW8iLCJhIjoiY2pnemR0dmwyMHVhdDJ2bGV1bnl6amJqaiJ9._G3sOFQoJZklpO9pscg1mw" target="_blank">Improve this map</a></div></div></div></div></div>
+<div id="census" class="map-overlay"><pre id="console"></pre></div>
+<!--<script src="src/index.js"></script>-->
+<script src="Census%20CitySDK%20v2.0_files/bundle.js"></script>
+
+
+</body></html>
