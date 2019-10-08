@@ -1,0 +1,7 @@
+library(readxl)
+NCDB_Sample_Database_All_Tracts_12apr2019 <- read_excel("~/Downloads/Civic/NCDB_Sample_Database_All_Tracts_12apr2019.xlsx")
+names(NCDB_Sample_Database_All_Tracts_12apr2019)
+NCDB_Sample_Transportation_Commute <- read_excel("~/Downloads/Civic/NCDB_Sample_Transportation_Commute.xlsx")
+names(NCDB_Sample_Transportation_Commute)
+NCDB_Sample_Population_10jun2019 <- read_excel("~/Downloads/Civic/NCDB_Sample_Population_10jun2019.xlsx")
+names(NCDB_Sample_Population_10jun2019)
