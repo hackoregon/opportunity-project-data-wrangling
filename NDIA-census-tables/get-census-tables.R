@@ -35,7 +35,7 @@ names(internet_stats) <- c("geoid", "name", "variable", "estimate", "moe_90pct")
 
 # save as CSV
 readr::write_csv(
-  internet_stats %>% dplyr::select(-NAME),
+  internet_stats %>% dplyr::select(-name),
   path = "~/Documents/internet_stats.csv"
 )
 # save the tract names
