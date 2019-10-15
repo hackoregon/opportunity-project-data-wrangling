@@ -4,6 +4,16 @@ if (!require("tidycensus")) install.packages("tidycensus")
 # libraries
 library(tidyverse)
 library(tidycensus)
+library(sf)
+library(tigris)
+
+# GIS setup
+tigris_cache_dir("/Raw/tigris_cache")
+readRenviron('~/.Renviron')
+Sys.getenv('TIGRIS_CACHE_DIR')
+options(tigris_year = 2018)
+options(tigris_use_cache = TRUE)
+
 
 # get the list of all the 2017 ACS five-year variables `tidycensus` knows
 census_variables <- tidycensus::load_variables(2017, "acs5", cache = TRUE)
@@ -11,23 +21,41 @@ readr::write_csv(census_variables, path = "~/Documents/census_variables.csv")
 
 # we just want the internet-relevant variables - see
 # <https://www.digitalinclusion.org/home-internet-maps/>
-internet_variables <- grep("^B280", census_variables$name, value = TRUE)
+internet_variables <- grep("^B280", census_variables[["name"]], value = TRUE)
 
 # load the FIPS code table
 data("fips_codes")
 readr::write_csv(fips_codes, path = "~/Documents/fips_codes.csv")
 fips_codes <- fips_codes %>% dplyr::filter(state_code < 60) # only actual states
 
-# an empty tibble - will have the data when we're done
-internet_stats <- tibble::tibble()
+# an empty simple features data frame - will have the data when we're done
 
 # we have to get the data one state at a time
 for (state in unique(fips_codes$state)) {
   print(paste("fetching", state))
-  internet_stats <- internet_stats %>%
-    dplyr::bind_rows(tidycensus::get_acs(
-      geography = "tract", variables = internet_variables, state = state
-    ))
+  tigris::tracts(state, cb =TRUE, year = options("tigris_year"))
+  if (state == "AL") {
+    internet_stats <- tidycensus::get_acs(
+      geography = "tract",
+      variables = internet_variables,
+      state = state,
+      geometry = TRUE,
+      keep_geo_vars = TRUE,
+      cb = TRUE
+    )
+  } else {
+    internet_stats <- rbind(
+      internet_stats,
+      tidycensus::get_acs(
+        geography = "tract",
+        variables = internet_variables,
+        state = state,
+        geometry = TRUE,
+        keep_geo_vars = TRUE,
+        cb = TRUE
+      )
+    )
+  }
 }
 
 # adjust the column names
