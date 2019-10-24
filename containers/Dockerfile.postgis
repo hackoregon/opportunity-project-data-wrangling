@@ -37,7 +37,7 @@ RUN curl -Ls \
   | tar xzf - --directory=/usr/local/bin/
 
 RUN R -e 'update.packages(ask=FALSE)'
-RUN R -e 'install.packages(c("acs", "censusapi", "data.table", "RPostgres", "sf", "sp", "tidycensus", "tidyverse" ))'
+RUN R -e 'install.packages(c("acs", "censusapi", "data.table", "RPostgres", "sf", "sp", "tidycensus", "tidyverse"))'
 
 # change port to 5439
 COPY postgis-scripts/change-port.sql /docker-entrypoint-initdb.d/
