@@ -1,0 +1,11 @@
+DROP TABLE
+CREATE TABLE
+COPY 26722946
+7.92user 4.37system 4:40.09elapsed 4%CPU (0avgtext+0avgdata 9200maxresident)k
+8730344inputs+0outputs (12major+489minor)pagefaults 0swaps
+psql:fbd_us_with_satellite_jun2018_v1.sql:1: NOTICE:  table "fbd_us_with_satellite_jun2018_v1" does not exist, skipping
+DROP TABLE
+CREATE TABLE
+COPY 69548702
+20.18user 10.18system 30:05.10elapsed 1%CPU (0avgtext+0avgdata 9204maxresident)k
+20850544inputs+0outputs (37major+450minor)pagefaults 0swaps
