@@ -7,7 +7,7 @@ library(tidycensus)
 library(tigris)
 
 # GIS setup
-tigris_cache_dir("/Raw/tigris_cache")
+tigris_cache_dir("/Raw/OpportunityProject/tigris_cache")
 readRenviron('~/.Renviron')
 Sys.getenv('TIGRIS_CACHE_DIR')
 options(tigris_year = 2017)
@@ -24,16 +24,22 @@ internet_variables <- grep("^B280", census_variables[["name"]], value = TRUE)
 # load the FIPS code table
 data("fips_codes")
 readr::write_csv(fips_codes, path = "~/Documents/fips_codes.csv")
-fips_codes <- fips_codes %>% dplyr::filter(state_code < 60) # only actual states
 
 # pre-fetch the shapefiles
 for (state in unique(fips_codes$state)) {
+  if (state == "UM") next
+  print(paste("fetching shapefile", state))
   tigris::tracts(state, cb =TRUE, year = options("tigris_year"))
 }
 
 # we have to get the data one state at a time
 for (state in unique(fips_codes$state)) {
-  print(paste("fetching", state))
+  if (state == "AS") next
+  if (state == "GU") next
+  if (state == "MP") next
+  if (state == "UM") next
+  if (state == "VI") next
+  print(paste("fetching data", state))
   if (state == "AL") {
     internet_stats <- tidycensus::get_acs(
       geography = "tract",
