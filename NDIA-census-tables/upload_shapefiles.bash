@@ -1,5 +1,5 @@
 #! /bin/bash
-
+  
 echo "creating census_gis schema"
 psql --username=${PGUSER} --dbname=${PGDATABASE} --command="DROP SCHEMA IF EXISTS census_gis CASCADE;"
 psql --username=${PGUSER} --dbname=${PGDATABASE} --command="CREATE SCHEMA census_gis;"

@@ -1,7 +1,6 @@
 DROP TABLE IF EXISTS internet_stats CASCADE;
 CREATE TABLE internet_stats (
   geoid text,
-  name text,
   variable text,
   estimate bigint,
   moe_90pct bigint
