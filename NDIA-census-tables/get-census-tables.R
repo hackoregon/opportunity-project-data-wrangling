@@ -5,6 +5,8 @@ if (!require("tidycensus")) install.packages("tidycensus")
 library(tidyverse)
 library(tidycensus)
 library(tigris)
+library(sp)
+library(rgdal)
 
 # GIS setup
 tigris_cache_dir("/Raw/OpportunityProject/tigris_cache")
@@ -13,24 +15,53 @@ Sys.getenv('TIGRIS_CACHE_DIR')
 options(tigris_year = 2017)
 options(tigris_use_cache = TRUE)
 
+# Output area setup
+output_directory <- "/Raw/OpportunityProject/acs_2017_internet_data/"
+unlink(output_directory, force = TRUE, recursive = TRUE)
+dir.create(output_directory)
+
 # get the list of all the 2017 ACS five-year variables `tidycensus` knows
-census_variables <- tidycensus::load_variables(2017, "acs5", cache = TRUE)
-readr::write_csv(census_variables, path = "~/Documents/census_variables.csv")
+census_variables <-
+  tidycensus::load_variables(2017, "acs5", cache = TRUE)
+readr::write_csv(
+  census_variables,
+  path = paste0(output_directory, "/census_variables.csv")
+)
 
 # we just want the internet-relevant variables - see
 # <https://www.digitalinclusion.org/home-internet-maps/>
-internet_variables <- grep("^B280", census_variables[["name"]], value = TRUE)
+internet_variables <-
+  grep("^B280", census_variables[["name"]], value = TRUE)
 
 # load the FIPS code table
 data("fips_codes")
-readr::write_csv(fips_codes, path = "~/Documents/fips_codes.csv")
+readr::write_csv(
+  fips_codes,
+  path = paste0(output_directory, "/fips_codes.csv")
+)
 
-# pre-fetch the shapefiles
+# pre-fetch the cartographic boundary shapefiles
+# https://www.census.gov/programs-surveys/geography/technical-documentation/naming-convention/cartographic-boundary-file.html
 for (state in unique(fips_codes$state)) {
   if (state == "UM") next
-  print(paste("fetching shapefile", state))
-  tigris::tracts(state, cb =TRUE, year = options("tigris_year"))
+  print(paste("fetching cartographic boundary shapefile", state))
+  if (state == "AL") {
+    cartographic_boundaries <-
+      tigris::tracts(state, cb =TRUE, year = options("tigris_year"))
+
+  } else {
+    cartographic_boundaries <- rbind(
+      cartographic_boundaries,
+      tigris::tracts(state, cb =TRUE, year = options("tigris_year"))
+    )
+  }
 }
+rgdal::writeOGR(
+  cartographic_boundaries,
+  dsn = output_directory,
+  layer = "cartographic_boundaries",
+  driver = "ESRI Shapefile"
+)
 
 # we have to get the data one state at a time
 for (state in unique(fips_codes$state)) {
@@ -59,13 +90,18 @@ for (state in unique(fips_codes$state)) {
 }
 
 # adjust the column names
-names(internet_stats) <- c("geoid", "name", "variable", "estimate", "moe_90pct")
+names(internet_stats) <-
+  c("geoid", "name", "variable", "estimate", "moe_90pct")
 
 # save as CSV
 readr::write_csv(
   internet_stats %>% dplyr::select(-name),
-  path = "~/Documents/internet_stats.csv"
+  path = paste0(output_directory, "/internet_stats.csv")
 )
+
 # save the tract names
 tract_names <- internet_stats %>% select(geoid, name) %>% unique()
-readr::write_csv(tract_names, path = "~/Documents/tract_names.csv")
+readr::write_csv(
+  tract_names,
+  path = paste0(output_directory, "/tract_names.csv")
+)
