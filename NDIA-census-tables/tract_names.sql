@@ -4,5 +4,4 @@ CREATE TABLE tract_names (
   name text
 );
 \copy tract_names from 'tract_names.csv' with csv header
-ALTER TABLE tract_names ADD COLUMN id serial;
-ALTER TABLE tract_names ADD PRIMARY KEY (id);
+ALTER TABLE tract_names ADD PRIMARY KEY (geoid);

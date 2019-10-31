@@ -5,5 +5,4 @@ CREATE TABLE census_variables (
   concept text
 );
 \copy census_variables from 'census_variables.csv' with csv header
-ALTER TABLE census_variables ADD COLUMN id serial;
-ALTER TABLE census_variables ADD PRIMARY KEY (id);
+ALTER TABLE census_variables ADD PRIMARY KEY (name);
