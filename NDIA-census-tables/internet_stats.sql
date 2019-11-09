@@ -7,6 +7,7 @@ CREATE TABLE internet_stats (
 );
 \copy internet_stats from 'internet_stats.csv' with csv header
 
-CREATE INDEX ON internet_stats(geoid, variable);
+CREATE INDEX ON internet_stats(geoid);
+CREATE INDEX ON internet_stats(variable);
 ALTER TABLE internet_stats ADD COLUMN id serial;
 ALTER TABLE internet_stats ADD PRIMARY KEY (id);
