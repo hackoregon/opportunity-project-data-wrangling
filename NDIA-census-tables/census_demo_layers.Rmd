@@ -1,0 +1,39 @@
+---
+title: "Census Demo Layers"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Libraries
+```{r}
+library(tidycensus)
+library(sf)
+library(dplyr)
+
+```
+
+## Fetch layers
+```{r}
+for (istate in c("GA", "NV")) {
+  for (itable in c("B28002", "B28010")) {
+    assign(
+      paste0(istate, "_", itable),
+      tidycensus::get_acs(
+        geography = "tract",
+        table = itable,
+        year = 2017,
+        output = "wide",
+        state = istate,
+        geometry = TRUE,
+        moe_level = 90,
+        survey = "acs5"
+      ) %>% 
+        sf::st_transform(crs = 4326)
+    )
+  }
+}
+
+```
