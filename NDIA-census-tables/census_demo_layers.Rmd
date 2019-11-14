@@ -31,13 +31,13 @@ for (istate in c("GA", "NV")) {
     ) %>% 
       sf::st_transform(crs = 4326) %>% 
       janitor::clean_names() 
-    dsn <- janitor::make_clean_names(paste0(
-      istate, "_", itable, ".geojson"
-    ))
+    dsn <- janitor::make_clean_names(paste0(istate, "_", itable))
+    dsn <- paste0(dsn, ".geojson")
     sf::st_write(
       obj = work,
       dsn = dsn,
-      driver = "GeoJSON"
+      driver = "GeoJSON",
+      delete_dsn = TRUE
     )
   }
 }
