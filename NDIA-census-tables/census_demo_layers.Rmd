@@ -19,19 +19,25 @@ library(dplyr)
 ```{r}
 for (istate in c("GA", "NV")) {
   for (itable in c("B28002", "B28010")) {
-    assign(
-      paste0(istate, "_", itable),
-      tidycensus::get_acs(
-        geography = "tract",
-        table = itable,
-        year = 2017,
-        output = "wide",
-        state = istate,
-        geometry = TRUE,
-        moe_level = 90,
-        survey = "acs5"
-      ) %>% 
-        sf::st_transform(crs = 4326)
+    work <- tidycensus::get_acs(
+      geography = "tract",
+      table = itable,
+      year = 2017,
+      output = "wide",
+      state = istate,
+      geometry = TRUE,
+      moe_level = 90,
+      survey = "acs5"
+    ) %>% 
+      sf::st_transform(crs = 4326) %>% 
+      janitor::clean_names() 
+    dsn <- janitor::make_clean_names(paste0(
+      istate, "_", itable, ".geojson"
+    ))
+    sf::st_write(
+      obj = work,
+      dsn = dsn,
+      driver = "GeoJSON"
     )
   }
 }
