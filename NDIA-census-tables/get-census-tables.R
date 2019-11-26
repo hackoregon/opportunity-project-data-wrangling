@@ -1,6 +1,3 @@
-# install the package if we need it
-if (!require("tidycensus")) install.packages("tidycensus")
-
 # libraries
 library(tidyverse)
 library(tidycensus)
@@ -32,6 +29,8 @@ readr::write_csv(
 # <https://www.digitalinclusion.org/home-internet-maps/>
 internet_variables <-
   grep("^B280", census_variables[["name"]], value = TRUE)
+internet_tables <- gsub("_.*$", "", internet_variables) %>%
+  unique()
 
 # load the FIPS code table
 data("fips_codes")
@@ -63,45 +62,41 @@ rgdal::writeOGR(
   driver = "ESRI Shapefile"
 )
 
-# we have to get the data one state at a time
-for (state in unique(fips_codes$state)) {
-  if (state == "AS") next
-  if (state == "GU") next
-  if (state == "MP") next
-  if (state == "UM") next
-  if (state == "VI") next
-  print(paste("fetching data", state))
-  if (state == "AL") {
-    internet_stats <- tidycensus::get_acs(
+for (itable in internet_tables) {
+  # for (itable in c("B28002", "B28010")) {
+
+  geojson_dsn <- paste0(output_directory, "/", itable, ".geojson") # output GeoJSON file
+
+  # we have to get the data one state at a time
+  for (istate in unique(fips_codes$state)) {
+    work <- try(tidycensus::get_acs(
       geography = "tract",
-      variables = internet_variables,
-      state = state
-    )
-  } else {
-    internet_stats <- dplyr::bind_rows(
-      internet_stats,
-      tidycensus::get_acs(
-        geography = "tract",
-        variables = internet_variables,
-        state = state
-      )
-    )
+      table = itable,
+      year = 2017,
+      output = "wide",
+      state = istate,
+      geometry = TRUE,
+      moe_level = 90,
+      survey = "acs5"
+    ))
+
+    # some states don't have data!
+    if (class(work) == "try-error") next
+
+    # reproject and clean names
+    work <- work %>%
+      sf::st_transform(crs = 4326) %>%
+      janitor::clean_names()
+    if (istate == "AL") {
+      full_table <- work
+    } else {
+      full_table <- rbind(full_table, work)
+    }
   }
+  sf::st_write(
+    obj = full_table,
+    dsn = geojson_dsn,
+    driver = "GeoJSON",
+    delete_dsn = TRUE
+  )
 }
-
-# adjust the column names
-names(internet_stats) <-
-  c("geoid", "name", "variable", "estimate", "moe_90pct")
-
-# save as CSV
-readr::write_csv(
-  internet_stats %>% dplyr::select(-name),
-  path = paste0(output_directory, "/internet_stats.csv")
-)
-
-# save the tract names
-tract_names <- internet_stats %>% select(geoid, name) %>% unique()
-readr::write_csv(
-  tract_names,
-  path = paste0(output_directory, "/tract_names.csv")
-)
