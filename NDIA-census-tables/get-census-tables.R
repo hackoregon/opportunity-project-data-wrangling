@@ -1,9 +1,13 @@
-# libraries
+# libraries,
+install.packages(c(
+  "janitor",
+  "rgdal",
+  "sf",
+  "tidycensus",
+  "tidyverse",
+  "tigris"
+))
 library(tidyverse)
-library(tidycensus)
-library(tigris)
-library(sp)
-library(rgdal)
 
 # GIS setup
 tigris_cache_dir("/Raw/OpportunityProject/tigris_cache")
