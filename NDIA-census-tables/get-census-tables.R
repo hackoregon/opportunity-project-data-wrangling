@@ -1,16 +1,14 @@
-# libraries,
-install.packages(c(
-  "janitor",
-  "rgdal",
-  "sf",
-  "tidycensus",
-  "tidyverse",
-  "tigris"
-))
+# libraries
+if (!require(janitor)) install.packages("janitor")
+if (!require(sf)) install.packages("sf")
+if (!require(snakecase)) install.packages("snakecase")
+if (!require(tidycensus)) install.packages("tidycensus")
+if (!require(tidyverse)) install.packages("tidyverse")
+if (!require(tigris)) install.packages("tigris")
 library(tidyverse)
 
 # GIS setup
-tigris_cache_dir("/Raw/OpportunityProject/tigris_cache")
+tigris::tigris_cache_dir("/Raw/OpportunityProject/tigris_cache")
 readRenviron('~/.Renviron')
 Sys.getenv('TIGRIS_CACHE_DIR')
 options(tigris_year = 2017)
@@ -27,6 +25,22 @@ census_variables <-
 readr::write_csv(
   census_variables,
   path = paste0(output_directory, "/census_variables.csv")
+)
+variable_decoder_ring <- census_variables %>% dplyr::mutate(
+  column_header = gsub("Estimate!!", "", label) %>%
+    snakecase::to_snake_case()
+  ) %>% dplyr::select(name, column_header)
+readr::write_csv(
+  variable_decoder_ring,
+  path = paste0(output_directory, "/variable_decoder_ring.csv")
+)
+table_decoder_ring <- census_variables %>% dplyr::mutate(
+  table_name = gsub("_...$", "", name),
+  table_concept = snakecase::to_snake_case(concept)
+) %>%  dplyr::select(table_name, table_concept) %>% unique()
+readr::write_csv(
+  table_decoder_ring,
+  path = paste0(output_directory, "/table_decoder_ring.csv")
 )
 
 # we just want the internet-relevant variables - see
@@ -45,29 +59,62 @@ readr::write_csv(
 
 # pre-fetch the cartographic boundary shapefiles
 # https://www.census.gov/programs-surveys/geography/technical-documentation/naming-convention/cartographic-boundary-file.html
+
+# tracts
 for (state in unique(fips_codes$state)) {
   if (state == "UM") next
-  print(paste("fetching cartographic boundary shapefile", state))
+  print(paste("fetching tract cartographic boundary shapefile", state))
   if (state == "AL") {
-    cartographic_boundaries <-
-      tigris::tracts(state, cb =TRUE, year = options("tigris_year"))
+    tract_cartographic_boundaries <-
+      tigris::tracts(state, cb =TRUE, year = options("tigris_year"), class = "sf") %>%
+      sf::st_transform(4326) %>%
+      janitor::clean_names()
 
   } else {
-    cartographic_boundaries <- rbind(
-      cartographic_boundaries,
-      tigris::tracts(state, cb =TRUE, year = options("tigris_year"))
+    tract_cartographic_boundaries <- rbind(
+      tract_cartographic_boundaries,
+      tigris::tracts(state, cb =TRUE, year = options("tigris_year"), class = "sf") %>%
+        sf::st_transform(4326) %>%
+        janitor::clean_names()
     )
   }
 }
-rgdal::writeOGR(
-  cartographic_boundaries,
-  dsn = output_directory,
-  layer = "cartographic_boundaries",
-  driver = "ESRI Shapefile"
+sf::st_write(
+  obj = tract_cartographic_boundaries,
+  dsn = paste0(output_directory, "/tract_cartographic_boundaries.geojson"),
+  driver = "GeoJSON",
+  delete_dsn = TRUE
 )
 
-for (itable in internet_tables) {
-  # for (itable in c("B28002", "B28010")) {
+# counties
+for (state in unique(fips_codes$state)) {
+  if (state == "UM") next
+  print(paste("fetching county cartographic boundary shapefile", state))
+  if (state == "AL") {
+    county_cartographic_boundaries <-
+      tigris::counties(state, cb =TRUE, year = options("tigris_year"), class = "sf") %>%
+      sf::st_transform(4326) %>%
+      janitor::clean_names()
+
+  } else {
+    county_cartographic_boundaries <- rbind(
+      county_cartographic_boundaries,
+      tigris::counties(state, cb =TRUE, year = options("tigris_year"), class = "sf") %>%
+        sf::st_transform(4326) %>%
+        janitor::clean_names()
+    )
+  }
+}
+sf::st_write(
+  obj = county_cartographic_boundaries,
+  dsn = paste0(output_directory, "/county_cartographic_boundaries.geojson"),
+  driver = "GeoJSON",
+  delete_dsn = TRUE
+)
+
+# for (itable in internet_tables) {
+# for (itable in c("B28002", "B28010")) {
+for (itable in c("B28002")) {
 
   geojson_dsn <- paste0(output_directory, "/", itable, ".geojson") # output GeoJSON file
 
@@ -77,9 +124,9 @@ for (itable in internet_tables) {
       geography = "tract",
       table = itable,
       year = 2017,
-      output = "wide",
+      output = "tidy",
       state = istate,
-      geometry = TRUE,
+      geometry = FALSE,
       moe_level = 90,
       survey = "acs5"
     ))
@@ -87,20 +134,18 @@ for (itable in internet_tables) {
     # some states don't have data!
     if (class(work) == "try-error") next
 
-    # reproject and clean names
-    work <- work %>%
-      sf::st_transform(crs = 4326) %>%
-      janitor::clean_names()
+    # clean names
+    work <- work %>% janitor::clean_names()
     if (istate == "AL") {
       full_table <- work
     } else {
       full_table <- rbind(full_table, work)
     }
   }
-  sf::st_write(
-    obj = full_table,
-    dsn = geojson_dsn,
-    driver = "GeoJSON",
-    delete_dsn = TRUE
-  )
+  # sf::st_write(
+  #   obj = full_table,
+  #   dsn = geojson_dsn,
+  #   driver = "GeoJSON",
+  #   delete_dsn = TRUE
+  # )
 }
