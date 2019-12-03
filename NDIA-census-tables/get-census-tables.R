@@ -8,16 +8,16 @@ if (!require(tigris)) install.packages("tigris")
 library(tidyverse)
 
 # GIS setup
-tigris::tigris_cache_dir("/Raw/OpportunityProject/tigris_cache")
+tigris_cache <- "/Work/tigris_cache"
+dir.create(tigris_cache, recursive = TRUE)
+tigris::tigris_cache_dir(tigris_cache)
 readRenviron('~/.Renviron')
-Sys.getenv('TIGRIS_CACHE_DIR')
 options(tigris_year = 2017)
 options(tigris_use_cache = TRUE)
 
 # Output area setup
-output_directory <- "/Raw/OpportunityProject/acs_2017_internet_data/"
-unlink(output_directory, force = TRUE, recursive = TRUE)
-dir.create(output_directory)
+output_directory <- "/Work/acs_2017_internet_data/"
+dir.create(output_directory, recursive = TRUE)
 
 # get the list of all the 2017 ACS five-year variables `tidycensus` knows
 census_variables <-
@@ -59,21 +59,28 @@ readr::write_csv(
 
 # pre-fetch the cartographic boundary shapefiles
 # https://www.census.gov/programs-surveys/geography/technical-documentation/naming-convention/cartographic-boundary-file.html
-
-# tracts
 for (state in unique(fips_codes$state)) {
   if (state == "UM") next
-  print(paste("fetching tract cartographic boundary shapefile", state))
+  print(paste("fetching cartographic boundary shapefile", state))
   if (state == "AL") {
     tract_cartographic_boundaries <-
       tigris::tracts(state, cb =TRUE, year = options("tigris_year"), class = "sf") %>%
       sf::st_transform(4326) %>%
       janitor::clean_names()
-
+    county_cartographic_boundaries <-
+      tigris::counties(state, cb =TRUE, year = options("tigris_year"), class = "sf") %>%
+      sf::st_transform(4326) %>%
+      janitor::clean_names()
   } else {
     tract_cartographic_boundaries <- rbind(
       tract_cartographic_boundaries,
       tigris::tracts(state, cb =TRUE, year = options("tigris_year"), class = "sf") %>%
+        sf::st_transform(4326) %>%
+        janitor::clean_names()
+    )
+    county_cartographic_boundaries <- rbind(
+      county_cartographic_boundaries,
+      tigris::counties(state, cb =TRUE, year = options("tigris_year"), class = "sf") %>%
         sf::st_transform(4326) %>%
         janitor::clean_names()
     )
@@ -85,26 +92,6 @@ sf::st_write(
   driver = "GeoJSON",
   delete_dsn = TRUE
 )
-
-# counties
-for (state in unique(fips_codes$state)) {
-  if (state == "UM") next
-  print(paste("fetching county cartographic boundary shapefile", state))
-  if (state == "AL") {
-    county_cartographic_boundaries <-
-      tigris::counties(state, cb =TRUE, year = options("tigris_year"), class = "sf") %>%
-      sf::st_transform(4326) %>%
-      janitor::clean_names()
-
-  } else {
-    county_cartographic_boundaries <- rbind(
-      county_cartographic_boundaries,
-      tigris::counties(state, cb =TRUE, year = options("tigris_year"), class = "sf") %>%
-        sf::st_transform(4326) %>%
-        janitor::clean_names()
-    )
-  }
-}
 sf::st_write(
   obj = county_cartographic_boundaries,
   dsn = paste0(output_directory, "/county_cartographic_boundaries.geojson"),
