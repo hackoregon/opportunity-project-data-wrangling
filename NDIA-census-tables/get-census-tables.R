@@ -34,14 +34,6 @@ readr::write_csv(
   variable_decoder_ring,
   path = paste0(output_directory, "/variable_decoder_ring.csv")
 )
-table_decoder_ring <- census_variables %>% dplyr::mutate(
-  table_name = gsub("_...$", "", name),
-  table_concept = snakecase::to_snake_case(concept)
-) %>%  dplyr::select(table_name, table_concept) %>% unique()
-readr::write_csv(
-  table_decoder_ring,
-  path = paste0(output_directory, "/table_decoder_ring.csv")
-)
 
 # we just want the internet-relevant variables - see
 # <https://www.digitalinclusion.org/home-internet-maps/>
