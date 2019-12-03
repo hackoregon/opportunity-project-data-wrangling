@@ -11,8 +11,6 @@ library(sf)
 # GIS setup
 tigris_cache <- "/Work/tigris_cache"
 dir.create(tigris_cache, recursive = TRUE)
-tigris::tigris_cache_dir(tigris_cache)
-readRenviron('~/.Renviron')
 options(tigris_year = 2017)
 options(tigris_use_cache = TRUE)
 
@@ -95,9 +93,10 @@ sf::st_write(
 )
 county_cartographic_boundaries <- county_cartographic_boundaries %>%
   dplyr::select(geoid, geometry)
-# for (itable in internet_tables) {
+
+for (itable in internet_tables) {
 # for (itable in c("B28002", "B28010")) {
-for (itable in c("B28002")) {
+# for (itable in c("B28002")) {
 
   tract_layer <- paste0(tolower(itable), "_tract")
   county_layer <- paste0(tolower(itable), "_county")
