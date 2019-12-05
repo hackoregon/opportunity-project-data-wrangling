@@ -6,6 +6,8 @@ SELECT
   medinc AS "Median Income",
   povrate AS "Poverty Rate",
   metroname AS "Metro Name",
-  fips_code_id::text AS geoid
+  lpad(fips_code_id::text, 11, '0') AS geoid
 FROM api_ncdbsampleyearly
-WHERE year = 2017;
+WHERE year = 2017
+AND povrate IS NOT NULL
+ORDER BY fips_code_id;
